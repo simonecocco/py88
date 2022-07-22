@@ -8,10 +8,15 @@ def exec_8088(file: str, debug=False) -> None:
         print('This file is incompatible with py88 :(')
         exit(1)
     interpreter: Interpreter = Interpreter(file, debug)
-    print(interpreter.text)
-    print(interpreter.data)
-    print(interpreter.bss)
-    print(interpreter.constants)
+    #print('TEXT')
+    #print(interpreter.getText())
+    #print('DATA')
+    #print(interpreter.getData())
+    #print('BSS')
+    #print(interpreter.getBSS())
+    #print('CONSTANT')
+    #print(interpreter.getConstant())
+    result_code: int = interpreter.run()
 
 print('py88 - emulator for 8088 in python.')
 print('Use -h for help')
@@ -26,7 +31,7 @@ if '-h' in argv:
     exit(0)
 
 debug_mode: bool = '-d' in argv
-file: str|None = None
+file: str | None = None
 
 for arg in argv:
     if '.s' in arg:
