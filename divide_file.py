@@ -1,5 +1,6 @@
 import re
-import sys
+from instruction import Instruction
+from variable import Var
 
 TEXT: str = 'TEXT'
 BSS: str = 'BSS'
@@ -9,60 +10,11 @@ NONE: str = 'NONE'
 TYPE: dict[str, int] = {NONE: -1, TEXT: 0, BSS: 1, DATA: 2, CONSTANT: 3}
 
 
-class Instruction:
-    def __init__(self, instruction: str, op1: str | None = None, op2: str | None = None, tag: str | None = None):
-        self.instruction: str = instruction
-        self.op1: str | None = op1
-        self.op2: str | None = op2
-        self.tag: str | None = tag
-        if self.tag == '':
-            self.tag = None
-        elif self.tag != '' and self.tag is not None:
-            self.tag = self.tag.replace(':', '')
-
-    def __repr__(self):
-        rpr: str = ''
-        if self.tag is not None and self.tag != '':
-            rpr += f'{self.tag}: '
-        rpr += f'{self.instruction} '
-        if self.op1 is not None and self.op1 != '':
-            rpr += self.op1
-        if self.op2 is not None and self.op2 != '':
-            rpr += ', '+self.op2
-        return rpr
-
-    #todo avvia il programma, ti tocca fare bss, data e costanti
-
-
-class Var:
-    def __init__(self, varname: str, size: str, value: str):
-        self.varname: str = varname
-        self.value: str = value #todo da modificare il tipo di dato
-        self.size: str = size #todo da modificare il tipo in dimensione
-
-    def __getsize__(self, size: str, counter: int = 1) -> int:
-        size = size.lower()
-        if 'int' in size or 'word' in size:
-            return 2 * counter
-        elif 'byte' in size or 'ascii' in size:
-            return 1 * counter
-        elif 'long' in size:
-            return 4 * counter
-        elif 'asciz' in size:
-            return (1 * counter) + 1
-        elif 'space' in size:
-            return counter
-        # todo da implementare
-        # elif 'align' in size:
-        # elif 'extern' in size:
-
-    def __repr__(self):
-        return f'{self.varname}: {self.size} {self.value}'
-
-
 class Program:
-    def __init__(self, program_name: str, debug_function):
-        self.dprint = debug_function
+    def __init__(self, program_name: str, debug_function: dict):
+        self.dprint = debug_function['d']
+        self.eprint = debug_function['e']
+        self.oprint = debug_function['o']
         self.text: list[Instruction] | None = None
         self.data: list | None = None
         self.bss: list | None = None
@@ -150,3 +102,6 @@ class Program:
             return self.bss
         if type(item) == str and item == CONSTANT:
             return self.constants
+
+    def getglobalmemory(self) -> list[Var]:
+        return self.data + self.bss
