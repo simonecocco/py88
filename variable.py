@@ -76,7 +76,7 @@ class Var:
             dim = self.value
             self.value = None
             return dim, dim
-        # todo da implementare
+        # da implementare
         # elif 'align' in size:
         # elif 'extern' in size:
 
