@@ -25,6 +25,7 @@ class Registers:
         return regname in self.registers.keys()
 
     def __setitem__(self, regname, value):
+        print(f'reg {regname}={value}') #todo sistema il messaggio
         try:
             if 'H' in regname or 'L' in regname:
                 original_register: str = regname.replace('H', 'X').replace('L', 'X')

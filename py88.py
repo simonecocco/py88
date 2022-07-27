@@ -17,10 +17,10 @@ class Interpreter:
 
     def __init__(self, file: str, debug: bool):
         self.debug: bool = debug
-        self.program: Program = Program(file, {'d': self.debug, 'e': self.eprint, 'o': self.oprint})
+        self.program: Program = Program(file, {'d': self.dprint, 'e': self.eprint, 'o': self.oprint})
         self.programstack: Stack = Stack()
         self.registers: Registers = Registers()
-        self.core: Core = Core(self.programstack, self.registers, self.program, {'d': self.debug, 'e': self.eprint, 'o': self.oprint})
+        self.core: Core = Core(self.programstack, self.registers, self.program, {'d': self.dprint, 'e': self.eprint, 'o': self.oprint})
 
     def getText(self) -> list[Instruction]:
         return self.program.text
@@ -41,9 +41,9 @@ class Interpreter:
             if 'MOV' in instruction.instruction: #MOV A<-B
                 self.core.mov(instruction.op1, instruction.op2)
             elif 'PUSH' in instruction.instruction: #PUSH A
-                pass #todo
+                self.core.push(instruction.op1)
             elif 'SYS' in instruction.instruction: #SYS
-                pass #todo
+                self.core.syscall()
             elif 'ADD' in instruction.instruction: #ADD A<-B
                 pass #todo
             elif 'SUB' in instruction.instruction: #SUB A<-B

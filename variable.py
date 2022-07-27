@@ -87,17 +87,22 @@ class Var:
         r: list[int] = []
         for bytenumber in range(t):
             base: int = int('FF' + ('00' * bytenumber), 16)
-            r.append((base & bytenumber) >> (8 * bytenumber))
+            r.append((base & number) >> (8 * bytenumber))
         return r
 
-    def getForStack(self) -> list[int] | None:
+    def getForStack(self, offset: int = 0) -> list[int] | None:
         t: type = type(self.value)
+        res: list = []
         if t == str:
             return None
-        if t == int:
-            return self.__subdivide__(self.value, self.elementsize)
-        if t == list:
+        elif t == int:
+            res = self.__subdivide__(self.value, self.elementsize)
+        elif t == list:
             l: list = []
             for num in self.value:
                 l += self.__subdivide__(num, self.elementsize)
-            return l
+            res = l
+        res = res[offset:]
+        if len(res) % 2 != 0:
+            res.append(0)
+        return res

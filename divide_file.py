@@ -103,5 +103,8 @@ class Program:
         if type(item) == str and item == CONSTANT:
             return self.constants
 
-    def getglobalmemory(self) -> list[Var]:
-        return self.data + self.bss
+    def getglobalmemory(self, includeconstants: bool) -> list[Var]:
+        data: list = self.data + self.bss
+        if includeconstants:
+            data += self.constants
+        return data
