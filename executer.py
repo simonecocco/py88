@@ -98,81 +98,74 @@ class Core:
         self.stack.insert(data=current_address)
 
     def __solveop__(self, op: str, includeconstants: bool = True) -> list[int, int] | str | int:  # Var variabile locazione e offset, str è un registro, int un numero
-        not_immediate: list[tuple] = re.findall(
-            r'([\d]{0,})([\(]{0,1}[\w\d]{1,}[\)]{0,1}){0,}([-+]{0,1})([\(]{0,1}[\w\d]{1,}[\)]{0,1}){0,}', op)
-        number: str | None
-        sign: str | None
-        op1: str | None
-        op2: str | None
+        ops_regex: str = r'([0-9]{0,})([\(]{0,}[\w\d]{1,}[\)]{0,}){0,1}([\s\-\+]{0,})([\(]{0,}[\w\d]{1,}[\)]{0,}){0,1}'
+        number, op1, sign, op2 = re.findall(ops_regex, op)[0]
 
-        if len(not_immediate) > 0:  # da qua vediamo che tipo di operatore è
-            number = not_immediate[0][0]
-            sign = not_immediate[0][2]
-            op1 = not_immediate[0][1]
-            op2 = not_immediate[0][3]
-            if number == '0' and re.search(r'(x[A-Fa-f0-9]{1,}|b[01]{1,}|o[0-7]{1,})', op1) is not None:
-                number += op1
-                op1 = ''
-        else:
-            raise IllegalOperator(f'{op} non è stato riconosciuto come operatore valido')
+        if number == '0' and re.search(r'(x[A-Fa-f0-9]{1,}|b[01]{1,}|o[0-7]{1,})', op1) is not None:
+            number += op1
+            op1 = ''
 
-        offset: int
-        if op1 != '' and '(' not in op1 and ')' not in op1 and sign == '' and op2 == '':
-            offset: int = 0
-            if number != '':
-                offset = self.__toint__(number)
-            if self.registers.isregister(op1):
-                return op1
-            var, loc = self.__getvaluefrommemory__(op1, includeconstants)
-            if var in self.data.constants:
-                return var.value
-            return loc + offset
-        elif '(' in op1 and ')' in op1:  # MOV 4(op), ...
-            op1 = op1.replace('(', '').replace(')', '')
-            var: Var
-            loc: int
-            offset: int = 0
-            if number != '':
-                offset = self.__toint__(number)
-            if self.registers.isregister(op1):
-                var, loc = self.__getmemoryaddress__(self.registers[op1], includeconstants)
-            else:
+        try:
+            offset: int
+            if op1 != '' and '(' not in op1 and ')' not in op1 and sign == '' and op2 == '':
+                offset: int = 0
+                if number != '':
+                    offset = self.__toint__(number)
+                if self.registers.isregister(op1):
+                    return op1
                 var, loc = self.__getvaluefrommemory__(op1, includeconstants)
-            return [loc, offset]
-        elif op1 != '' and op2 != '' and sign == '':  # ottiene il valore presente nella memoria
-            op1 = op1.replace('(', '').replace(')', '')
-            op2 = op2.replace('(', '').replace(')', '')
-            op1_a: int
-            op2_a: int
-            num: int | None = None
-            if number != '':
-                num = self.__toint__(number)
-            if self.registers.isregister(op1):
-                op1_a = self.__toint__(self.registers[op1])
+                if var in self.data.constants:
+                    return var.value
+                return loc + offset
+            elif '(' in op1 and ')' in op1:  # MOV 4(op), ...
+                op1 = op1.replace('(', '').replace(')', '')
+                var: Var
+                loc: int
+                offset: int = 0
+                if number != '':
+                    offset = self.__toint__(number)
+                if self.registers.isregister(op1):
+                    var, loc = self.__getmemoryaddress__(self.registers[op1], includeconstants)
+                else:
+                    var, loc = self.__getvaluefrommemory__(op1, includeconstants)
+                return [loc, offset]
+            elif op1 != '' and op2 != '' and sign == '':  # ottiene il valore presente nella memoria
+                op1 = op1.replace('(', '').replace(')', '')
+                op2 = op2.replace('(', '').replace(')', '')
+                op1_a: int
+                op2_a: int
+                num: int | None = None
+                if number != '':
+                    num = self.__toint__(number)
+                if self.registers.isregister(op1):
+                    op1_a = self.__toint__(self.registers[op1])
+                else:
+                    _, op1_a = self.__getmemoryaddress__(self.registers[op1])
+                if self.registers.isregister(op2):
+                    op2_a = self.__toint__(self.registers[op2])
+                else:
+                    _, op2_a = self.__getmemoryaddress__(self.registers[op2])
+                effective_address: int = op1_a + op2_a + num
+                var, loc = self.__getmemoryaddress__(effective_address)
+                offset = effective_address - loc
+                return [loc, offset]
+            elif op1 != '' and op2 != '' and sign != '':  # c'è un'operazione
+                num1: int | None = self.__toint__(op1)
+                num2: int | None = self.__toint__(op2)
+                if num1 is None:
+                    var, num1 = self.__getvaluefrommemory__(op1, includeconstants)
+                if num2 is None:
+                    var, num2 = self.__getvaluefrommemory__(op2, includeconstants)
+                if '-' in sign:
+                    num2 *= -1
+                return num1 + num2
+            elif number != '':  # c'è una costante
+                return self.__toint__(number)
             else:
-                _, op1_a = self.__getmemoryaddress__(self.registers[op1])
-            if self.registers.isregister(op2):
-                op2_a = self.__toint__(self.registers[op2])
-            else:
-                _, op2_a = self.__getmemoryaddress__(self.registers[op2])
-            effective_address: int = op1_a + op2_a + num
-            var, loc = self.__getmemoryaddress__(effective_address)
-            offset = effective_address - loc
-            return [loc, offset]
-        elif op1 != '' and op2 != '' and sign != '':  # c'è un'operazione
-            num1: int | None = self.__toint__(op1)
-            num2: int | None = self.__toint__(op2)
-            if num1 is None:
-                var, num1 = self.__getvaluefrommemory__(op1, includeconstants)
-            if num2 is None:
-                var, num2 = self.__getvaluefrommemory__(op2, includeconstants)
-            if '-' in sign:
-                num2 *= -1
-            return num1 + num2
-        elif number != '':  # c'è una costante
-            return self.__toint__(number)
-        else:
-            raise IllegalOperator(f'{op} non contiene operatori validi')
+                raise IllegalOperator(f'{op} non contiene operatori validi')
+        except:
+            self.dprint(f'errore in solveop:\nn:{number} op1:{op1} sign:{sign} op2:{op2}')
+            sys.exit(1)
 
     def mov(self, dest: str, src: str) -> None:
         self.dprint(f'MOV {dest}, {src}')
@@ -224,13 +217,31 @@ class Core:
             else:
                 self.registers['AL'] = ord(c[0])
                 self.registers['AH'] = 0
+        elif call_type == 127: #printf
+            var, loc = self.__getmemoryaddress__(self.stack.remove())
+            str_printf: str = var.value
+            splitted_string: list[str] = re.split(r'%[dsc]', str_printf)
+            formatted_args: list[str] = re.findall(r'%[dsc]', str_printf)
+            str_printf = ''
+            for (splt, arg) in zip(splitted_string[:-1], formatted_args):
+                str_printf += splt
+                if arg == '%d':
+                    str_printf += str(self.stack.remove())
+                elif arg == '%s':
+                    tmp, tmploc = self.__getmemoryaddress__(self.stack.remove())
+                    str_printf += tmp.value
+                elif arg == '%c':
+                    str_printf += chr(self.stack.remove())
+                else:
+                    str_printf += arg
+            str_printf += splitted_string[-1]
+            self.oprint(str_printf)
         #todo implementa elif call_type == 3 #read
         #todo implementa elif call_type == 6: #close
         #todo implementa elif call_type == 5 #open
         #todo implementa elif call_type == 8 #create
         #todo implementa elif call_type == 19 #lseek
         #todo implementa elif call_type == 122 #putchar
-        #todo implementa elif call_type == 127 #printf
         #todo implementa elif call_type == 121 #sprintf
         #todo implementa elif call_type == 125 #sscanf
         else:
@@ -321,10 +332,15 @@ class Core:
         reg2: str = 'DX' if not b else 'AH'
         b: int = self.registers[reg1]
 
-        self.dprint(f'{op}/{reg1}={a // b},{op}%{reg2}={a%b}')
+        div_value: int = 0 if b == 0 else a // b
+        mod_value: int = 0 if b == 0 else a % b
+        if b == 0:
+            self.dprint(f'Divisione per 0! ({reg2})')
 
-        self.__assignint__(reg1, a//b)
-        self.__assignint__(reg2, a%b)
+        self.dprint(f'{op}/{reg1}={div_value},{op}%{reg2}={mod_value}')
+
+        self.__assignint__(reg1, div_value)
+        self.__assignint__(reg2, mod_value)
 
     def inc(self, op: str):
         dest: list[int, int] | str | int = self.__solveop__(op, False)
@@ -338,5 +354,32 @@ class Core:
     def loopcondition(self) -> bool:
         if self.registers['CX'] >= 0:
             self.registers['CX'] = self.registers['CX'] - 1
-            return True
+            return True and self.registers['CX'] != 0xFFFF
         return False
+
+    def pop(self, op: str):
+        if op != '':
+            dest: list[int, int] | str | int = self.__solveop__(op, False)
+            self.__assignint__(dest, self.stack.remove())
+        else:
+            self.stack.remove()
+
+    def andl(self, op1: str, op2: str) -> None:
+        dest: list[int, int] | str | int = self.__solveop__(op1, False)
+        src: list[int, int] | str | int = self.__solveop__(op2)
+
+        value: list[int] = [self.__getint__(dest), self.__getint__(src)]
+
+        self.dprint(f'{op1}&{op2}={value[0]&value[1]}')
+
+        self.__assignint__(dest, value[0] & value[1])
+
+    def orl(self, op1: str, op2: str) -> None:
+        dest: list[int, int] | str | int = self.__solveop__(op1, False)
+        src: list[int, int] | str | int = self.__solveop__(op2)
+
+        value: list[int] = [self.__getint__(dest), self.__getint__(src)]
+
+        self.dprint(f'{op1}|{op2}={value[0]|value[1]}')
+
+        self.__assignint__(dest, value[0] | value[1])

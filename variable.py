@@ -33,7 +33,8 @@ class Var:
 
         return c
 
-    def __toint__(self, number: str) -> int:
+    @staticmethod
+    def __toint__(number: str) -> int | None:
         conv: list[str] = re.findall(r'^(0[xX][A-Fa-f0-9]{1,})', number) #hex
         if len(conv) > 0:
             num: int = int(conv[0], 16)
@@ -50,6 +51,8 @@ class Var:
         if len(conv) > 0:
             num: int = int(conv[0])
             return num
+
+        return None
 
     def __assigntype__(self, value: str) -> str | list | int:
         if value.startswith('"') and value.endswith('"'):  # stringa

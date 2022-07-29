@@ -20,8 +20,8 @@ class Interpreter:
     def __init__(self, file: str, debug: bool):
         self.debug: bool = debug
         self.program: Program = Program(file, {'d': self.dprint, 'e': self.eprint, 'o': self.oprint})
-        self.programstack: Stack = Stack()
         self.registers: Registers = Registers()
+        self.programstack: Stack = Stack(self.registers)
         self.core: Core = Core(self.programstack, self.registers, self.program, {'d': self.dprint, 'e': self.eprint, 'o': self.oprint})
 
     def getText(self) -> list[Instruction]:
@@ -46,9 +46,10 @@ class Interpreter:
 
     # esegue il programm e ritorna il codice di fine
     def run(self, start_address: int = 0) -> int:
-        instr: list = self.program[TEXT][start_address:]
+        instr: list = self.program[TEXT]
+        offset: int = start_address
         for address in range(len(instr)):
-            instruction: Instruction = instr[address]
+            instruction: Instruction = instr[address + offset]
             if 'MOV' in instruction.instruction: #MOV A<-B
                 self.core.mov(instruction.op1, instruction.op2)
             elif 'PUSH' in instruction.instruction: #PUSH A
@@ -75,7 +76,7 @@ class Interpreter:
                 if self.cmpjump(instruction.instruction):
                     target_address: int = self.__getlabeladdress__(instruction.op1)
                     self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
-                    self.run(target_address)
+                    offset = target_address - address
             elif 'MUL' in instruction.instruction:
                 self.core.mul(instruction.op1, b='MULB' in instruction.instruction)
             elif 'DIV' in instruction.instruction:
@@ -83,14 +84,22 @@ class Interpreter:
             elif 'JMP' in instruction.instruction:
                 target_address: int = self.__getlabeladdress__(instruction.op1)
                 self.dprint(f'salto incondizionato a {instruction.op1} ({target_address})')
-                self.run(target_address)
+                offset = target_address - address
             elif 'INC' in instruction.instruction:
                 self.core.inc(instruction.op1)
             elif 'LOOP' in instruction.instruction:
                 if self.core.loopcondition():
                     target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'loop su {instruction.op1}')
-                    self.run(target_address)
+                    self.dprint(f"loop su {instruction.op1} (CX:{self.core.registers['CX']})")
+                    offset = target_address - address
+            elif 'POP' in instruction.instruction:
+                self.core.pop(instruction.op1)
+            elif 'RET' in instruction.instruction:
+                return 0
+            elif 'AND' in instruction.instruction:
+                self.core.andl(instruction.op1, instruction.op2)
+            elif 'OR' in instruction.instruction:
+                self.core.orl(instruction.op1, instruction.op2)
             else:
                 raise IllegalInstruction(f'Istruzione non supportata o inesistente. ({instruction})')
 
