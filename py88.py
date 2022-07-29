@@ -5,6 +5,7 @@ from colorama import Fore, Back
 from executer import Core
 from exceptions import *
 
+
 class Interpreter:
     def dprint(self, msg: str) -> None:
         if self.debug:
@@ -41,6 +42,8 @@ class Interpreter:
             if instr.tag == label:
                 return i
 
+        raise IllegalMemoryAddress(f'Etichetta non presente ({label})')
+
     # esegue il programm e ritorna il codice di fine
     def run(self, start_address: int = 0) -> int:
         instr: list = self.program[TEXT][start_address:]
@@ -68,38 +71,87 @@ class Interpreter:
                 self.core.xor(instruction.op1, instruction.op2)
             elif 'CMP' in instruction.instruction:
                 self.core.cmp(instruction.op1, instruction.op2)
-            elif 'JCXZ' in instruction.instruction:
-                if self.core.jcxz():
+            elif self.cmpjump(instruction.instruction, True):
+                if self.cmpjump(instruction.instruction):
                     target_address: int = self.__getlabeladdress__(instruction.op1)
                     self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
                     self.run(target_address)
-            elif 'JNA' in instruction.instruction or 'JBE' in instruction.instruction:
-                if self.core.je() or self.core.jl():
+            elif 'MUL' in instruction.instruction:
+                self.core.mul(instruction.op1, b='MULB' in instruction.instruction)
+            elif 'DIV' in instruction.instruction:
+                self.core.div(instruction.op1, b='DIVB' in instruction.instruction)
+            elif 'JMP' in instruction.instruction:
+                target_address: int = self.__getlabeladdress__(instruction.op1)
+                self.dprint(f'salto incondizionato a {instruction.op1} ({target_address})')
+                self.run(target_address)
+            elif 'INC' in instruction.instruction:
+                self.core.inc(instruction.op1)
+            elif 'LOOP' in instruction.instruction:
+                if self.core.loopcondition():
                     target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
-                    self.run(target_address)
-            elif 'JNB' in instruction.instruction or 'JAE' in instruction.instruction or 'JNC' in instruction.instruction:
-                if self.core.je() or self.core.jg():
-                    target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
-                    self.run(target_address)
-            elif 'JE' in instruction.instruction or 'JZ' in instruction.instruction:
-                if self.core.je():
-                    target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
-                    self.run(target_address)
-            elif 'JNLE' in instruction.instruction or 'JG' in instruction.instruction:
-                if self.core.jg():
-                    target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
-                    self.run(target_address)
-            elif 'JNB' in instruction.instruction or 'JAE' in instruction.instruction or 'JNC' in instruction.instruction:
-                if self.core.je() or self.core.jg():
-                    target_address: int = self.__getlabeladdress__(instruction.op1)
-                    self.dprint(f'salto condizionato a {instruction.op1} ({target_address})')
+                    self.dprint(f'loop su {instruction.op1}')
                     self.run(target_address)
             else:
                 raise IllegalInstruction(f'Istruzione non supportata o inesistente. ({instruction})')
 
-    def cmpjump(self, instruction: Instruction):
-        pass #todo metti qua tutte le istruzioni di salto
+    def cmpjump(self, jumptype: str, test: bool = True) -> bool:
+        if 'JCXZ' in jumptype:
+            if test:
+                return True
+            return self.core.jcxz()
+        elif 'JNA' in jumptype or 'JBE' in jumptype:
+            if test:
+                return True
+            return self.core.je() or self.core.jl()
+        elif 'JNB' in jumptype or 'JAE' in jumptype or 'JNC' in jumptype:
+            if test:
+                return True
+            return self.core.je() or self.core.jg()
+        elif 'JE' in jumptype or 'JZ' in jumptype:
+            if test:
+                return True
+            return self.core.je()
+        elif 'JNLE' in jumptype or 'JG' in jumptype:
+            if test:
+                return True
+            return self.core.jg()
+        elif 'JGE' in jumptype or 'JNL' in jumptype:
+            if test:
+                return True
+            return self.core.je() or self.core.jg()
+        elif 'JO' in jumptype:
+            if test:
+                return True
+            return self.core.jo()
+        elif 'JS' in jumptype:
+            if test:
+                return True
+            return self.core.jl()
+        elif 'JB' in jumptype or 'JNAE' in jumptype or 'JC' in jumptype:
+            if test:
+                return True
+            return self.core.jl()
+        elif 'JNBE' in jumptype or 'JA' in jumptype:
+            if test:
+                return True
+            return self.core.jg()
+        elif 'JNE' in jumptype or 'JNZ' in jumptype:
+            if test:
+                return True
+            return self.core.jg() or self.core.jl()
+        elif 'JL' in jumptype or 'JNGE' in jumptype:
+            if test:
+                return True
+            return self.core.jl()
+        elif 'JLE' in jumptype or 'JNG' in jumptype:
+            if test:
+                return True
+            return self.core.je() or self.core.jl()
+        elif 'JNO' in jumptype:
+            if test:
+                return True
+            return not self.core.jo()
+        elif 'JNS' in jumptype:
+            if test:
+                return True
+            return not self.core.je() or self.core.jg()

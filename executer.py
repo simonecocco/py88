@@ -184,7 +184,7 @@ class Core:
         self.__assignint__(dest_op, value)
 
     def push(self, data: str) -> None:
-        data_op: list[Var, int, int] | str | int = self.__solveop__(data)
+        data_op: list[int, int] | str | int = self.__solveop__(data)
         dtype: type = type(data_op)
 
         if dtype is str:
@@ -242,6 +242,8 @@ class Core:
 
         value: list[int] = [self.__getint__(dest), self.__getint__(src)]
 
+        self.dprint(f'{op1}+{op2}={sum(value)}')
+
         self.__assignint__(dest, sum(value))
 
     def sub(self, op1: str, op2: str) -> None:
@@ -249,6 +251,8 @@ class Core:
         src: list[int, int] | str | int = self.__solveop__(op2)
 
         value: list[int] = [self.__getint__(dest), -self.__getint__(src)]
+
+        self.dprint(f'{op1}-{op2}={sum(value)}')
 
         self.__assignint__(dest, sum(value))
 
@@ -258,6 +262,8 @@ class Core:
 
         value: list[int] = [self.__getint__(dest), self.__getint__(src)]
 
+        self.dprint(f'{op1}^{op2}={value[0]^value[1]}')
+
         self.__assignint__(dest, value[0] ^ value[1])
 
     def cmp(self, op1: str, op2: str) -> None:
@@ -266,33 +272,71 @@ class Core:
 
         value: list[int] = [self.__getint__(a), self.__getint__(b)]
 
+        self.dprint(f'{a} CMP {b}')
+
         #0x1 a < b
         #0x2 a == b
-        #0x3 a > b
-        #0x4 overflow
+        #0x4 a > b
+        #0x8 overflow
 
         a, b = value
         self.registers['CMP'] = 0
         if a < b:
             self.registers['CMP'] = 0x1
-        elif a == b:
+        if a == b:
             self.registers['CMP'] = 0x2
-        else:
-            self.registers['CMP'] = 0x3
-        if
+        if a > b:
+            self.registers['CMP'] = 0x4
+        s: int = a + b
+        if (s & 0xFFFF) > 0:
+            self.registers['CMP'] = 0x8
 
-    #todo rivedi i bit
     def jcxz(self) -> bool:
         return self.registers['CX'] == 0
 
     def jl(self) -> bool:
-        return self.registers['CMP'] == 0x1
+        return (self.registers['CMP'] & 0x1) > 0
 
     def je(self) -> bool:
-        return self.registers['CMP'] == 0x2
+        return (self.registers['CMP'] & 0x2) > 0
 
     def jg(self) -> bool:
-        return self.registers['CMP'] == 0x3
+        return (self.registers['CMP'] & 0x4) > 0
 
     def jo(self) -> bool:
-        return self.registers['CMP'] ==
+        return (self.registers['CMP'] & 0x8) > 0
+
+    def mul(self, op: str, b: bool = False):
+        a: int = self.__getint__(self.__solveop__(op))
+        reg: str = 'AX' if not b else 'AL'
+        b: int = self.registers[reg]
+
+        self.dprint(f'{op}*{reg}={a * b}')
+
+        self.__assignint__(reg, a*b)
+
+    def div(self, op: str, b: bool = False):
+        a: int = self.__getint__(self.__solveop__(op))
+        reg1: str = 'AX' if not b else 'AL'
+        reg2: str = 'DX' if not b else 'AH'
+        b: int = self.registers[reg1]
+
+        self.dprint(f'{op}/{reg1}={a // b},{op}%{reg2}={a%b}')
+
+        self.__assignint__(reg1, a//b)
+        self.__assignint__(reg2, a%b)
+
+    def inc(self, op: str):
+        dest: list[int, int] | str | int = self.__solveop__(op, False)
+
+        value: int = self.__getint__(dest) + 1
+
+        self.dprint(f'{op}++')
+
+        self.__assignint__(dest, value)
+
+    def loopcondition(self) -> bool:
+        if self.registers['CX'] >= 0:
+            self.registers['CX'] = self.registers['CX'] - 1
+            return True
+        return False

@@ -54,7 +54,7 @@ class Program:
     def __parseinstruction__(self, instruction: str, section: int, tag: str | None) -> None:
         if section == TYPE[TEXT] and self.text is not None:
             if len(instruction) > 1:
-                instr_param: tuple = re.findall(r'([\w]{1,})[\s]{0,}([\-()\w\d]{0,})[,\s]{0,}([\-()\w\d]{0,})', instruction)[0]
+                instr_param: tuple = re.findall(r'([\w]{1,})[\s]{0,}([\s\-()\w\d]{0,})[,\s]{0,}([\-()\w\d]{0,})', instruction)[0]
                 instr: Instruction = Instruction(*[x.strip() for x in instr_param], tag=tag)
                 self.text.append(instr)
         elif section == TYPE[DATA] and self.data is not None:
@@ -81,7 +81,7 @@ class Program:
         for instruction in instructions:
             instruction = self.__purifyinstruction__(instruction)
             sector, current_section = self.__sector__(instruction, current_section)
-            if sector:
+            if sector or instruction == '':
                 continue
             if instruction.endswith(':'):
                 tag = instruction
