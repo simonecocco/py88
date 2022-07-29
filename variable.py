@@ -83,6 +83,9 @@ class Var:
     def __repr__(self):
         return f'{self.varname}: {self.size} {self.value}'
 
+    def __str__(self):
+        return f'{self.value}'
+
     def __subdivide__(self, number: int, t: int) -> list[int]:
         r: list[int] = []
         for bytenumber in range(t):
@@ -90,11 +93,11 @@ class Var:
             r.append((base & number) >> (8 * bytenumber))
         return r
 
-    def getForStack(self, offset: int = 0) -> list[int] | None:
+    def getforstack(self, offset: int = 0) -> list[int]:
         t: type = type(self.value)
         res: list = []
         if t == str:
-            return None
+            return [ord(x) for x in self.value]
         elif t == int:
             res = self.__subdivide__(self.value, self.elementsize)
         elif t == list:

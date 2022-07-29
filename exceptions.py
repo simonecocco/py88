@@ -6,3 +6,8 @@ class IllegalOperator(Exception):
 class IllegalMemoryAddress(Exception):
     def __init__(self, msg: str):
         Exception.__init__(self, msg)
+
+
+class IllegalInstruction(Exception):
+    def __init__(self, msg: str):
+        Exception.__init__(self, msg)

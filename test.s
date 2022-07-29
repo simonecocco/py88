@@ -11,7 +11,7 @@ start:
     PUSH _WRITE
     SYS
     ADD SP, 8
-    SUB CX, AX
+    SUB CX, CX
     PUSH CX
     PUSH _EXIT
     SYS

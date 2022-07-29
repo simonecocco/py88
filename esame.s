@@ -5,13 +5,13 @@ _EXIT = 1
 .SECT .TEXT
 main:	
     
-    !input n
+    --input n
     PUSH _GETCHAR
     SYS
     SUBB AL, 0x30
     MOVB (n), AL
 
-    !FINE INPUT
+    --FINE INPUT
 
 
     PUSH v1
@@ -33,12 +33,12 @@ fun:
     MOV BP, SP
     
     MOV BX, 0
-    MOV DI, 8(BP) !v1
-    MOV SI, 6(BP) !v2
-    MOV CX, 4(BP) !size
+    MOV DI, 8(BP) --v1
+    MOV SI, 6(BP) --v2
+    MOV CX, 4(BP) --size
 
     ciclo:
-        ! v_1[i] > n
+        -- v_1[i] > n
         XOR AX, AX
         MOVB AL, (BX)(DI)
         MOVB AH, (n)
@@ -65,7 +65,7 @@ fun:
 
         elseif:
 
-        ! v_1[i] + v_2[i] > dim + n
+        -- v_1[i] + v_2[i] > dim + n
         XOR AX, AX
         MOVB AL, (BX)(DI)
         ADDB AL, (BX)(SI)
@@ -125,8 +125,8 @@ print:
     MOV BP, SP
     
     MOV BX, 0   
-    MOV SI, 6(BP) !v2
-    MOV CX, 4(BP) !size
+    MOV SI, 6(BP) --v2
+    MOV CX, 4(BP) --size
 
     ciclo_stampa:
     XOR AX, AX

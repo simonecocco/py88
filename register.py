@@ -13,7 +13,8 @@ class Registers:
             'SP': 0,
             'BP': 0,
             'SI': 0,
-            'DI': 0
+            'DI': 0,
+            'CMP': 0
         }
 
     def __callerror__(self, registername: str) -> None:
@@ -31,11 +32,11 @@ class Registers:
                 original_register: str = regname.replace('H', 'X').replace('L', 'X')
                 value &= 0xFF #prevengo più di 1 byte
                 if 'H' in regname:
-                    self.registers[regname] &= 0x00FF
-                    self.registers[regname] |= (value << 8)
+                    self.registers[original_register] &= 0x00FF
+                    self.registers[original_register] |= (value << 8)
                 else:
-                    self.registers[regname] &= 0xFF00
-                    self.registers[regname] |= value
+                    self.registers[original_register] &= 0xFF00
+                    self.registers[original_register] |= value
             else:
                 value &= 0xFFFF #prevengo più di 2 byte
                 self.registers[regname] = value
