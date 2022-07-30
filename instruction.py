@@ -1,3 +1,8 @@
+'''
+La classe Instruction contiene l'istruzione ed i suoi operandi, in modo da poterli richiamare al bisogno
+'''
+
+
 class Instruction:
     def __init__(self, instruction: str, op1: str | None = None, op2: str | None = None, tag: str | None = None):
         self.instruction: str = instruction

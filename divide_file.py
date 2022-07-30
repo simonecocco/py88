@@ -1,3 +1,7 @@
+'''
+si occupa di fare il parse del programma dividendo sezione text, bss, data e le costanti
+'''
+
 import re
 from instruction import Instruction
 from variable import Var

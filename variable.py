@@ -1,3 +1,7 @@
+'''
+la classe Var contiene il nome, la dimensione del dato, in modo da poterli richiamare al bisogno
+'''
+
 import re
 
 

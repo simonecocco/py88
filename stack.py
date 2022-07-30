@@ -1,3 +1,7 @@
+'''
+è la classe che si occupa di emulare il comportamento dello stack memorizzando interi a 2byte (indirizzi e dati)
+'''
+
 from variable import Var
 from register import Registers
 
@@ -19,7 +23,7 @@ class Stack:
     def insert(self, variable: Var = None, data: int = 0, offset: int = 0) -> None:
         tmp: list | None = None
         if variable is not None:
-            var_value: list | None = variable.getForStack(offset)
+            var_value: list | None = variable.getforstack(offset)
             if var_value is None:
                 tmp: list = [data & 0xFF, (data >> 8) & 0xFF]
                 self.__stackmemory__ += tmp

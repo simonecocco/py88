@@ -1,3 +1,10 @@
+'''
+py88 è un mini emulatore per il linguaggio assemblativo 8088.
+
+Il file main.py si occupa di inizializzare l'ambiente ricavando le variabili,
+validando il file e avviando l'esecuzione
+'''
+
 from sys import argv, exit
 import file_checker as fc
 from py88 import Interpreter

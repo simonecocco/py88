@@ -1,4 +1,10 @@
-import re
+'''
+La classe che gestisce tutta la parte dei registri.
+Consente di memorizzare un valore tramite registers[x] = y
+E di leggere il registro y = registers[x]
+Ogni registro è unsigned int da 2 byte, supporta anche i registri HL da 1 byte (unsigned char)
+'''
+
 import sys
 from colorama import Back
 

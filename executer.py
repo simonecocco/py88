@@ -1,3 +1,7 @@
+'''
+la classe core esegue le istruzioni andando a modificare stack, registri e i valori in memoria
+'''
+
 import re
 import sys
 
@@ -383,3 +387,21 @@ class Core:
         self.dprint(f'{op1}|{op2}={value[0]|value[1]}')
 
         self.__assignint__(dest, value[0] | value[1])
+
+    def neg(self, op: str):
+        dest: list[int, int] | str | int = self.__solveop__(op, False)
+
+        value: int = self.__getint__(dest)
+
+        self.dprint(f'~{op}')
+
+        self.__assignint__(dest, ~value)
+
+    def dec(self, op: str):
+        dest: list[int, int] | str | int = self.__solveop__(op, False)
+
+        value: int = self.__getint__(dest) - 1
+
+        self.dprint(f'{op}--')
+
+        self.__assignint__(dest, value)

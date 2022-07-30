@@ -1,3 +1,7 @@
+'''
+è la classe che si occupa di interpretare le istruzioni e chiamare le api per ciascuna istruzione
+'''
+
 from divide_file import *
 from stack import Stack
 from register import Registers
@@ -100,6 +104,10 @@ class Interpreter:
                 self.core.andl(instruction.op1, instruction.op2)
             elif 'OR' in instruction.instruction:
                 self.core.orl(instruction.op1, instruction.op2)
+            elif 'NEG' in instruction.instruction:
+                self.core.neg(instruction.op1)
+            elif 'DEC' in instruction.instruction:
+                self.core.dec(instruction.op1, instruction.op2)
             else:
                 raise IllegalInstruction(f'Istruzione non supportata o inesistente. ({instruction})')
 
