@@ -49,6 +49,8 @@ python3 py88/main.py test.s
 > I puntatori alla memoria vengono dichiarati con le parentesi: (BX) oppure (var).
 > 
 > Si possono usare i registri a 1 o 2 byte (AX, BX...)
+
+> Ciascuna istruzione può avere una etichetta in modo da poter essere richiamata.
 ### Manipolazione dello stack
 * `PUSH op` -> inserisce op nello stack;
 * `POP [opzionale op]` -> fa il pop dallo stack, se è presente un operando carica il risultato del pop dentro.
