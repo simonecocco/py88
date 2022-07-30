@@ -75,8 +75,8 @@ python3 py88/main.py test.s
 * `JO etichetta` -> se durante il precedente confronto $a+b$ causa un overflow allora salta
 * `JLE etichetta` -> se durante il precedente confronto $a<=b$ allora salta
 * `JE etichetta` -> se durante il precedente confronto $a==b$ allora salta
-* `JL etichetta` -> se durante il precedente confronto $a<b$ allora salta
-* `JG etichetta` -> se durante il precedente confronto $a>b$ allora salta
+* `JL etichetta` -> se durante il precedente confronto $a \l b$ allora salta
+* `JG etichetta` -> se durante il precedente confronto $a \g b$ allora salta
 * `JNE etichetta` -> se durante il precedente confronto $a!=b$ allora salta
 * `CALL etichetta` -> chiama una funzione
 ### Chiamate al sistema operativo
